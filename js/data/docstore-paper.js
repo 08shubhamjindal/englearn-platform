@@ -32,7 +32,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Act 1: Schemaless — The Append-Only Pioneer'
+          content: 'Act 1: Schemaless — The Append-Only Pioneer'
         },
         {
           type: 'text',
@@ -62,7 +62,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Act 2: Cassandra — Flexibility Without Maturity'
+          content: 'Act 2: Cassandra — Flexibility Without Maturity'
         },
         {
           type: 'text',
@@ -112,7 +112,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Act 3: The Decision — Evolve, Don\'t Replace'
+          content: 'Act 3: The Decision — Evolve, Don\'t Replace'
         },
         {
           type: 'text',
@@ -152,7 +152,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Schema-on-Read vs. Schema-on-Write'
+          content: 'Schema-on-Read vs. Schema-on-Write'
         },
         {
           type: 'text',
@@ -198,7 +198,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Flexible Document Model'
+          content: 'The Flexible Document Model'
         },
         {
           type: 'text',
@@ -227,7 +227,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Feature Set at a Glance'
+          content: 'Feature Set at a Glance'
         },
         {
           type: 'text',
@@ -300,7 +300,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Query Engine Layer (Stateless)'
+          content: 'The Query Engine Layer (Stateless)'
         },
         {
           type: 'text',
@@ -323,7 +323,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Storage Engine Layer (Stateful)'
+          content: 'The Storage Engine Layer (Stateful)'
         },
         {
           type: 'text',
@@ -340,7 +340,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Control Plane (The Brain)'
+          content: 'The Control Plane (The Brain)'
         },
         {
           type: 'text',
@@ -378,7 +378,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Table Structure'
+          content: 'Table Structure'
         },
         {
           type: 'text',
@@ -406,7 +406,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Primary Key vs. Partition Key'
+          content: 'Primary Key vs. Partition Key'
         },
         {
           type: 'text',
@@ -452,7 +452,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Materialized Views'
+          content: 'Materialized Views'
         },
         {
           type: 'text',
@@ -491,7 +491,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'What Is a Replicated State Machine?'
+          content: 'What Is a Replicated State Machine?'
         },
         {
           type: 'text',
@@ -544,7 +544,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Failure Handling'
+          content: 'Failure Handling'
         },
         {
           type: 'text',
@@ -584,7 +584,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'MySQL as the Storage Engine'
+          content: 'MySQL as the Storage Engine'
         },
         {
           type: 'text',
@@ -607,7 +607,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'How a Transaction Works'
+          content: 'How a Transaction Works'
         },
         {
           type: 'text',
@@ -645,7 +645,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'Concurrency Control: How Conflicts Are Handled'
+          content: 'Concurrency Control: How Conflicts Are Handled'
         },
         {
           type: 'text',
@@ -689,7 +689,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'ACID Guarantees Explained'
+          content: 'ACID Guarantees Explained'
         },
         {
           type: 'list',
@@ -717,7 +717,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'What Is Strict Serializability?'
+          content: 'What Is Strict Serializability?'
         },
         {
           type: 'text',
@@ -734,7 +734,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Read-After-Write Guarantee'
+          content: 'The Read-After-Write Guarantee'
         },
         {
           type: 'text',
@@ -751,7 +751,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'CAP Theorem: Docstore\'s Choice'
+          content: 'CAP Theorem: Docstore\'s Choice'
         },
         {
           type: 'diagram',
@@ -781,7 +781,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'The Complete Picture'
+          content: 'The Complete Picture'
         },
         {
           type: 'text',
@@ -806,7 +806,7 @@ PaperRegistry.register(
         },
         {
           type: 'heading',
-          text: 'What\'s Next'
+          content: 'What\'s Next'
         },
         {
           type: 'text',
