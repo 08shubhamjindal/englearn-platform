@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EngLearn — Engineering Papers, Simplified</title>
+  <link rel="stylesheet" href="css/styles.css?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Core: Registry must load first -->
+  <script src="js/data/registry.js"></script>
+
+  <!-- Paper data files: just add a new script tag to register a new paper -->
+  <script src="js/data/dynamo-paper.js"></script>
+  <script src="js/data/raft-paper.js"></script>
+  <script src="js/data/coming-soon.js"></script>
+
+  <!-- Engine components -->
+  <script src="js/components/header.js"></script>
+  <script src="js/components/progressTracker.js"></script>
+  <script src="js/components/diagramRenderer.js"></script>
+  <script src="js/components/blockRenderer.js"></script>
+  <script src="js/components/chapterNav.js"></script>
+  <script src="js/components/paperCard.js"></script>
+  <script src="js/components/catalogPage.js"></script>
+  <script src="js/components/readerPage.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
