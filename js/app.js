@@ -64,5 +64,7 @@ const App = {
   }
 };
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => App.init());
+// Boot — dynamically load all papers, then init
+document.addEventListener('DOMContentLoaded', () => {
+  PaperLoader.loadAll(() => App.init());
+});

@@ -1,4 +1,4 @@
-// ============================================
+6// ============================================
 // Paper Registry — self-registration system
 // ============================================
 // Each paper data file calls PaperRegistry.register()
@@ -7,6 +7,19 @@
 const PaperRegistry = {
   _papers: {},       // paperId -> { meta, chapters }
   _catalog: [],      // ordered list for catalog display
+
+  // ── Manifest: list every paper data file name (without .js) ──
+  // To add a new paper, just add its filename here.
+  _manifest: [
+    'dynamo-paper',
+    'raft-paper',
+    'docstore-paper',
+    'coming-soon'
+  ],
+
+  getManifest() {
+    return this._manifest;
+  },
 
   /**
    * Register a paper. Called by each paper data file.

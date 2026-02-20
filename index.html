@@ -12,25 +12,20 @@
 <body>
   <div id="app"></div>
 
-  <!-- Core: Registry must load first -->
-  <script src="js/data/registry.js?v=6"></script>
-
-  <!-- Paper data files: just add a new script tag to register a new paper -->
-  <script src="js/data/dynamo-paper.js?v=6"></script>
-  <script src="js/data/raft-paper.js?v=6"></script>
-  <script src="js/data/docstore-paper.js?v=6"></script>
-  <script src="js/data/coming-soon.js?v=6"></script>
+  <!-- Core: Registry + Loader (papers are loaded dynamically from manifest) -->
+  <script src="js/data/registry.js?v=7"></script>
+  <script src="js/paper-loader.js?v=7"></script>
 
   <!-- Engine components -->
-  <script src="js/components/header.js?v=6"></script>
-  <script src="js/components/progressTracker.js?v=6"></script>
-  <script src="js/components/diagramRenderer.js?v=6"></script>
-  <script src="js/components/blockRenderer.js?v=6"></script>
-  <script src="js/components/chapterNav.js?v=6"></script>
-  <script src="js/components/paperCard.js?v=6"></script>
-  <script src="js/components/catalogPage.js?v=6"></script>
-  <script src="js/components/readerPage.js?v=6"></script>
-  <script src="js/router.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/components/header.js?v=7"></script>
+  <script src="js/components/progressTracker.js?v=7"></script>
+  <script src="js/components/diagramRenderer.js?v=7"></script>
+  <script src="js/components/blockRenderer.js?v=7"></script>
+  <script src="js/components/chapterNav.js?v=7"></script>
+  <script src="js/components/paperCard.js?v=7"></script>
+  <script src="js/components/catalogPage.js?v=7"></script>
+  <script src="js/components/readerPage.js?v=7"></script>
+  <script src="js/router.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>
