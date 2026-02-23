@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: englearn-platform
+
+  # ── Database ──
+  datasource:
+    url: jdbc:h2:mem:englearn       # H2 for local dev; switch to Postgres in prod
+    # url: jdbc:postgresql://localhost:5432/englearn   # Uncomment for Postgres
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    # driver-class-name: org.postgresql.Driver         # Uncomment for Postgres
+
+  h2:
+    console:
+      enabled: true                  # Access H2 console at /h2-console
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update               # Auto-create tables (use 'validate' in prod)
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+        # dialect: org.hibernate.dialect.PostgreSQLDialect   # Uncomment for Postgres
+
+  # ── Google OAuth2 ──
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+# ── App Config ──
+app:
+  jwt:
+    # IMPORTANT: Change this to a strong random secret in production (min 64 chars)
+    secret: ${JWT_SECRET:englearn-dev-secret-key-change-this-in-production-minimum-64-chars-long!!}
+    expiration-ms: 604800000          # 7 days
+    cookie-max-age-seconds: 604800    # 7 days
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5500}

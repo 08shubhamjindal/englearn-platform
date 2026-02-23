@@ -64,7 +64,10 @@ const App = {
   }
 };
 
-// Boot — dynamically load all papers, then init
+// Boot — load auth + papers, then init
 document.addEventListener('DOMContentLoaded', () => {
-  PaperLoader.loadAll(() => App.init());
+  // Initialize auth (non-blocking), then load papers and render
+  AuthService.init().then(() => {
+    PaperLoader.loadAll(() => App.init());
+  });
 });
