@@ -4,7 +4,9 @@ import com.englearn.dto.UserDTO;
 import com.englearn.security.JwtAuthFilter;
 import com.englearn.security.JwtUtil;
 import com.englearn.service.UserService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,17 +29,35 @@ public class AuthController {
      * Returns the current logged-in user, or 401 if not authenticated.
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<?> getCurrentUser(Authentication authentication,
+                                            HttpServletRequest request) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401)
                     .body(Map.of("authenticated", false));
         }
 
         UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+
+        // Extract token expiry from the JWT cookie (mirrors the exp claim)
+        long tokenExpiry = 0;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (JwtAuthFilter.COOKIE_NAME.equals(cookie.getName())) {
+                    try {
+                        Claims claims = jwtUtil.parseToken(cookie.getValue());
+                        tokenExpiry = claims.getExpiration().getTime();
+                    } catch (Exception ignored) { }
+                    break;
+                }
+            }
+        }
+
+        final long expiry = tokenExpiry;
         return userService.getUserById(userId)
                 .map(user -> ResponseEntity.ok(Map.of(
                         "authenticated", true,
-                        "user", user
+                        "user", user,
+                        "tokenExpiry", expiry
                 )))
                 .orElse(ResponseEntity.status(401)
                         .body(Map.of("authenticated", false)));
