@@ -83,7 +83,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         cookie.setMaxAge(cookieMaxAge);
         response.addCookie(cookie);
 
-        // Redirect to frontend
-        response.sendRedirect(frontendUrl);
+        // Redirect to frontend with login callback flag
+        response.sendRedirect(frontendUrl + "?auth=success");
     }
 }
