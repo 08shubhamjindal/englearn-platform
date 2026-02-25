@@ -38,9 +38,9 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     List<Object[]> countRepliesByParentIds(@Param("parentIds") List<UUID> parentIds);
 
     /**
-     * Count comments for a paper chapter (top-level only).
+     * Count comments for a paper chapter (top-level only, excluding soft-deleted).
      */
-    long countByPaperIdAndChapterIndexAndParentIdIsNull(String paperId, int chapterIndex);
+    long countByPaperIdAndChapterIndexAndParentIdIsNullAndDeletedFalse(String paperId, int chapterIndex);
 
     /**
      * Count replies to a specific comment.

@@ -115,7 +115,10 @@ public class CommentService {
             return false;
         }
 
-        commentRepository.delete(comment);
+        // Soft delete — mark as deleted, clear content. Replies remain intact.
+        comment.setDeleted(true);
+        comment.setContent("");
+        commentRepository.save(comment);
         return true;
     }
 
@@ -124,7 +127,7 @@ public class CommentService {
      */
     @Transactional(readOnly = true)
     public long getCommentCount(String paperId, int chapterIndex) {
-        return commentRepository.countByPaperIdAndChapterIndexAndParentIdIsNull(paperId, chapterIndex);
+        return commentRepository.countByPaperIdAndChapterIndexAndParentIdIsNullAndDeletedFalse(paperId, chapterIndex);
     }
 
     // ────────────────────── Mapping helpers ──────────────────────
@@ -155,15 +158,17 @@ public class CommentService {
      * User is already loaded (JOIN FETCH), replyCount is pre-computed (batch).
      */
     private CommentResponseDTO toDTO(Comment comment, UUID viewerUserId, long replyCount) {
+        boolean isDeleted = comment.isDeleted();
         return CommentResponseDTO.builder()
                 .id(comment.getId())
-                .content(comment.getContent())
+                .content(isDeleted ? "[deleted]" : comment.getContent())
                 .upvotes(comment.getUpvotes())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
-                .authorName(comment.getUser().getName())
-                .authorAvatarUrl(comment.getUser().getAvatarUrl())
-                .canDelete(canDelete(comment, viewerUserId))
+                .authorName(isDeleted ? "[deleted]" : comment.getUser().getName())
+                .authorAvatarUrl(isDeleted ? null : comment.getUser().getAvatarUrl())
+                .canDelete(!isDeleted && canDelete(comment, viewerUserId))
+                .deleted(isDeleted)
                 .parentId(comment.getParentId())
                 .replies(null)
                 .replyCount(replyCount)

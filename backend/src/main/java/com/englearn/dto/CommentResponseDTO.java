@@ -27,6 +27,9 @@ public class CommentResponseDTO {
     // Permissions (computed server-side based on the requesting user)
     private boolean canDelete;
 
+    // Soft delete
+    private boolean deleted;
+
     // Threading
     private UUID parentId;
     private List<CommentResponseDTO> replies;

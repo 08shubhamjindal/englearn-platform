@@ -181,6 +181,7 @@ const CommentSection = {
     const timeAgo = this._timeAgo(comment.createdAt);
     const user = AuthService.getUser();
     const canDelete = comment.canDelete;
+    const isDeleted = comment.deleted;
 
     const repliesHtml = comment.replies && comment.replies.length > 0
       ? comment.replies.map(r => this._renderComment(r, paperId, chapterIndex, true)).join('')
@@ -193,24 +194,30 @@ const CommentSection = {
       : '';
 
     return `
-      <div class="comments__item ${isReply ? 'comments__item--reply' : ''}" data-id="${comment.id}">
+      <div class="comments__item ${isReply ? 'comments__item--reply' : ''} ${isDeleted ? 'comments__item--deleted' : ''}" data-id="${comment.id}">
         <div class="comments__item-main">
+          ${isDeleted ? `
+          <div class="comments__item-avatar-fallback" style="display:flex; opacity:0.4;">?</div>
+          ` : `
           <img class="comments__item-avatar" src="${comment.authorAvatarUrl || ''}"
                alt="${comment.authorName}"
                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
           <div class="comments__item-avatar-fallback" style="display:none;">
             ${(comment.authorName || 'U').charAt(0).toUpperCase()}
           </div>
+          `}
           <div class="comments__item-body">
             <div class="comments__item-meta">
-              <span class="comments__item-author">${this._escapeHtml(comment.authorName)}</span>
+              <span class="comments__item-author" ${isDeleted ? 'style="opacity:0.5; font-style:italic;"' : ''}>${isDeleted ? '[deleted]' : this._escapeHtml(comment.authorName)}</span>
               <span class="comments__item-time">${timeAgo}</span>
             </div>
-            <div class="comments__item-content">${this._escapeHtml(comment.content)}</div>
+            <div class="comments__item-content" ${isDeleted ? 'style="opacity:0.5; font-style:italic;"' : ''}>${isDeleted ? '[deleted]' : this._escapeHtml(comment.content)}</div>
+            ${!isDeleted ? `
             <div class="comments__item-actions">
               ${!isReply && user ? `<button class="comments__action-btn" onclick="CommentSection._showReplyBox('${comment.id}', '${paperId}', ${chapterIndex})">Reply</button>` : ''}
               ${canDelete ? `<button class="comments__action-btn comments__action-btn--delete" onclick="CommentSection._deleteComment('${comment.id}', '${paperId}', ${chapterIndex})">Delete</button>` : ''}
             </div>
+            ` : ''}
           </div>
         </div>
         <div class="comments__replies" id="replies-${comment.id}">

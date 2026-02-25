@@ -39,6 +39,10 @@ public class Comment {
     @Builder.Default
     private int upvotes = 0;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean deleted = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
