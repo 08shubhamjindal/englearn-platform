@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,23 +34,39 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentResponseDTO> getCommentsForChapter(String paperId, int chapterIndex,
                                                            int page, int size, UUID viewerUserId) {
+        // Query 1: Fetch comments + users in ONE query (JOIN FETCH)
         List<Comment> topLevel = commentRepository
                 .findTopLevelComments(paperId, chapterIndex, PageRequest.of(page, size));
 
+        if (topLevel.isEmpty()) return List.of();
+
+        // Query 2: Batch fetch reply counts in ONE query
+        List<UUID> commentIds = topLevel.stream().map(Comment::getId).collect(Collectors.toList());
+        Map<UUID, Long> replyCounts = getReplyCountsBatch(commentIds);
+
         return topLevel.stream()
-                .map(c -> toDTO(c, viewerUserId))
+                .map(c -> toDTO(c, viewerUserId, replyCounts.getOrDefault(c.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Get replies for a specific comment.
+     * Get paginated replies for a specific comment.
      * @param viewerUserId the requesting user's ID (null if unauthenticated)
      */
     @Transactional(readOnly = true)
-    public List<CommentResponseDTO> getReplies(UUID parentId, UUID viewerUserId) {
-        return commentRepository.findByParentIdOrderByCreatedAtAsc(parentId)
-                .stream()
-                .map(c -> toDTOWithoutReplies(c, viewerUserId))
+    public List<CommentResponseDTO> getReplies(UUID parentId, int page, int size, UUID viewerUserId) {
+        // Query 1: Fetch replies + users in ONE query (JOIN FETCH)
+        List<Comment> replies = commentRepository
+                .findRepliesWithUser(parentId, PageRequest.of(page, size));
+
+        if (replies.isEmpty()) return List.of();
+
+        // Query 2: Batch fetch reply counts (for nested reply counts)
+        List<UUID> replyIds = replies.stream().map(Comment::getId).collect(Collectors.toList());
+        Map<UUID, Long> replyCounts = getReplyCountsBatch(replyIds);
+
+        return replies.stream()
+                .map(c -> toDTO(c, viewerUserId, replyCounts.getOrDefault(c.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -77,8 +94,8 @@ public class CommentService {
                 .build();
 
         Comment saved = commentRepository.save(comment);
-        // The creator can always delete their own comment
-        return toDTOWithoutReplies(saved, userId);
+        // The creator can always delete their own comment — replyCount is 0 for new comments
+        return toDTO(saved, userId, 0);
     }
 
     /**
@@ -113,38 +130,31 @@ public class CommentService {
     // ────────────────────── Mapping helpers ──────────────────────
 
     /**
+     * Batch fetch reply counts for multiple comment IDs in one query.
+     */
+    private Map<UUID, Long> getReplyCountsBatch(List<UUID> parentIds) {
+        if (parentIds.isEmpty()) return Map.of();
+        return commentRepository.countRepliesByParentIds(parentIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> (Long) row[1]
+                ));
+    }
+
+    /**
      * Compute whether the viewer can delete this comment.
-     * Author or ADMIN can delete.
+     * Only checks author match — admin permission is enforced on the actual DELETE endpoint.
      */
     private boolean canDelete(Comment comment, UUID viewerUserId) {
         if (viewerUserId == null) return false;
-        if (comment.getUser().getId().equals(viewerUserId)) return true;
-        return userRepository.findById(viewerUserId)
-                .map(u -> "ADMIN".equals(u.getRole()))
-                .orElse(false);
+        return comment.getUser().getId().equals(viewerUserId);
     }
 
-    private CommentResponseDTO toDTO(Comment comment, UUID viewerUserId) {
-        List<Comment> replies = commentRepository.findByParentIdOrderByCreatedAtAsc(comment.getId());
-
-        return CommentResponseDTO.builder()
-                .id(comment.getId())
-                .content(comment.getContent())
-                .upvotes(comment.getUpvotes())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
-                .authorName(comment.getUser().getName())
-                .authorAvatarUrl(comment.getUser().getAvatarUrl())
-                .canDelete(canDelete(comment, viewerUserId))
-                .parentId(comment.getParentId())
-                .replies(replies.stream().map(c -> toDTOWithoutReplies(c, viewerUserId)).collect(Collectors.toList()))
-                .replyCount(replies.size())
-                .build();
-    }
-
-    private CommentResponseDTO toDTOWithoutReplies(Comment comment, UUID viewerUserId) {
-        long replyCount = commentRepository.countByParentId(comment.getId());
-
+    /**
+     * Map Comment to DTO — no extra queries.
+     * User is already loaded (JOIN FETCH), replyCount is pre-computed (batch).
+     */
+    private CommentResponseDTO toDTO(Comment comment, UUID viewerUserId, long replyCount) {
         return CommentResponseDTO.builder()
                 .id(comment.getId())
                 .content(comment.getContent())

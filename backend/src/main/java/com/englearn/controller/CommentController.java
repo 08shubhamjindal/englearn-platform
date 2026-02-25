@@ -56,9 +56,11 @@ public class CommentController {
     @GetMapping("/replies/{commentId}")
     public ResponseEntity<List<CommentResponseDTO>> getReplies(
             @PathVariable UUID commentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
             Authentication authentication) {
         UUID viewerUserId = extractUserId(authentication);
-        return ResponseEntity.ok(commentService.getReplies(commentId, viewerUserId));
+        return ResponseEntity.ok(commentService.getReplies(commentId, page, size, viewerUserId));
     }
 
     /**

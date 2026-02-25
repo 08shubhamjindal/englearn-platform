@@ -295,26 +295,46 @@ const CommentSection = {
     }
   },
 
-  async _loadReplies(parentId, paperId, chapterIndex) {
+  async _loadReplies(parentId, paperId, chapterIndex, page = 0) {
     const repliesEl = document.getElementById(`replies-${parentId}`);
     if (!repliesEl) return;
 
     try {
       const res = await fetch(
-        `${AuthService.API_BASE}/api/comments/replies/${parentId}`,
+        `${AuthService.API_BASE}/api/comments/replies/${parentId}?page=${page}&size=5`,
         { credentials: 'include' }
       );
       if (!res.ok) throw new Error('Failed to load replies');
       const replies = await res.json();
 
-      repliesEl.innerHTML = replies
+      const repliesHtml = replies
         .map(r => this._renderComment(r, paperId, chapterIndex, true))
         .join('');
 
-      // Remove the "Show N replies" button
+      if (page === 0) {
+        repliesEl.innerHTML = repliesHtml;
+      } else {
+        // Remove existing "Load more replies" button before appending
+        const existingBtn = document.getElementById(`loadMoreReplies-${parentId}`);
+        if (existingBtn) existingBtn.remove();
+        repliesEl.insertAdjacentHTML('beforeend', repliesHtml);
+      }
+
+      // Remove the "Show N replies" button (first load)
       const commentEl = repliesEl.closest('.comments__item');
       const showBtn = commentEl ? commentEl.querySelector('.comments__show-replies') : null;
       if (showBtn) showBtn.remove();
+
+      // Add "Load more replies" if we got a full page
+      if (replies.length === 5) {
+        const nextPage = page + 1;
+        repliesEl.insertAdjacentHTML('beforeend', `
+          <button class="comments__load-more comments__load-more--replies" id="loadMoreReplies-${parentId}"
+                  onclick="CommentSection._loadReplies('${parentId}', '${paperId}', ${chapterIndex}, ${nextPage})">
+            Load more replies
+          </button>
+        `);
+      }
     } catch (e) {
       console.error('Failed to load replies:', e);
     }
