@@ -48,13 +48,13 @@ const Header = {
         <img class="header__avatar" src="${user.avatarUrl || ''}" alt="${user.name}" 
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
         <div class="header__avatar-fallback" style="display:none;">${(user.name || 'U').charAt(0).toUpperCase()}</div>
-        <span class="header__username">${user.name}</span>
+        <span class="header__username">${user.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
         <svg class="header__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="header__dropdown" id="userDropdown">
         <div class="header__dropdown-info">
-          <div class="header__dropdown-name">${user.name}</div>
-          <div class="header__dropdown-email">${user.email}</div>
+          <div class="header__dropdown-name">${user.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+          <div class="header__dropdown-email">${user.email.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
         </div>
         <div class="header__dropdown-divider"></div>
         <button class="header__dropdown-item" onclick="AuthService.logout()">

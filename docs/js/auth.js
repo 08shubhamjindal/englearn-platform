@@ -56,7 +56,6 @@ const AuthService = {
             name:        data.user.name,
             email:       data.user.email,
             avatarUrl:   data.user.avatarUrl,
-            role:        data.user.role,
             tokenExpiry: data.tokenExpiry   // Unix ms — mirrors JWT exp claim
           };
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(userInfo));

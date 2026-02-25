@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/logout").authenticated()
                 .requestMatchers("/api/progress/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
                 .requestMatchers("/api/quiz/**").authenticated()
 
                 // Everything else requires auth
