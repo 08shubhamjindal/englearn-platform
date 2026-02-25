@@ -76,7 +76,7 @@ const ReaderPage = {
 
     footerHtml += `</div>`;
 
-    return `
+    const html = `
       ${Header.render('reader')}
       <div class="reader">
         ${ChapterNav.render(paperMeta, chapters, chapterIndex, paperId)}
@@ -89,10 +89,16 @@ const ReaderPage = {
             </div>
             ${blocksHtml}
             ${footerHtml}
+            ${CommentSection.render(paperId, chapterIndex)}
           </div>
         </div>
       </div>
     `;
+
+    // Load comments after DOM render (next tick)
+    setTimeout(() => CommentSection.init(paperId, chapterIndex), 0);
+
+    return html;
   },
 
   // No longer needed — PaperRegistry handles all paper lookups dynamically
