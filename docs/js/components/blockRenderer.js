@@ -20,6 +20,8 @@ const BlockRenderer = {
         return this.renderList(block);
       case 'diagram':
         return this.renderDiagram(block, paperId);
+      case 'playground':
+        return this.renderPlayground(block, paperId);
       default:
         return '';
     }
@@ -70,5 +72,13 @@ const BlockRenderer = {
     }, 200);
 
     return html;
+  },
+
+  _playgroundCounter: 0,
+
+  renderPlayground(block, paperId) {
+    this._playgroundCounter++;
+    const blockId = `${paperId}-pg-${this._playgroundCounter}`;
+    return PlaygroundRenderer.render(block, blockId);
   }
 };
