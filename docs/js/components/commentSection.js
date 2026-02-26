@@ -266,10 +266,18 @@ const CommentSection = {
       }
       if (!res.ok) throw new Error('Failed to post comment');
 
-      // Reload comments from page 0 to show the new one
       input.value = '';
-      this._currentPage = 0;
-      this._loadComments(paperId, chapterIndex, false);
+
+      if (parentId) {
+        // Reply — just refresh that thread so the user sees their reply immediately
+        const replyBox = document.getElementById(`replyBox-${parentId}`);
+        if (replyBox) replyBox.innerHTML = '';
+        this._loadReplies(parentId, paperId, chapterIndex);
+      } else {
+        // Top-level comment — reload from page 0
+        this._currentPage = 0;
+        this._loadComments(paperId, chapterIndex, false);
+      }
     } catch (e) {
       console.error('Failed to post comment:', e);
       alert('Failed to post comment. Please try again.');
@@ -294,8 +302,19 @@ const CommentSection = {
       }
       if (!res.ok) throw new Error('Failed to delete');
 
-      this._currentPage = 0;
-      this._loadComments(paperId, chapterIndex, false);
+      // Check if deleted comment is a reply (has a parent)
+      const commentEl = document.querySelector(`[data-id="${commentId}"]`);
+      const parentEl = commentEl?.closest('.comments__replies')?.closest('.comments__item');
+      const parentId = parentEl?.getAttribute('data-id');
+
+      if (parentId) {
+        // Deleted a reply — just refresh that thread
+        this._loadReplies(parentId, paperId, chapterIndex);
+      } else {
+        // Deleted a top-level comment — reload from page 0
+        this._currentPage = 0;
+        this._loadComments(paperId, chapterIndex, false);
+      }
     } catch (e) {
       console.error('Failed to delete comment:', e);
       alert('Failed to delete comment.');

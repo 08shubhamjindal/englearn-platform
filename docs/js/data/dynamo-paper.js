@@ -89,6 +89,112 @@ PaperRegistry.register(
           variant: 'warning',
           title: '⚠️ The CAP Trade-off',
           text: 'Dynamo chose Availability + Partition Tolerance (AP), sacrificing strong Consistency. This means during network partitions, Dynamo allows conflicting writes and resolves them later — a fundamental design choice that shapes its entire architecture.'
+        },
+        {
+          type: 'playground',
+          title: '🧪 What If You Add Caching?',
+          config: {
+            architecture: {
+              height: 180,
+              nodes: [
+                { id: 'client', label: 'Client', x: 90, y: 90, color: '#6366f1', width: 90, height: 36 },
+                { id: 'web', label: 'Web Server', x: 270, y: 90, color: '#22d3ee', width: 110, height: 36 },
+                { id: 'db', label: 'Primary DB', x: 500, y: 90, color: '#34d399', width: 100, height: 36 },
+                { id: 'cdn', label: 'CDN Edge', x: 90, y: 30, color: '#fbbf24', width: 100, height: 32, requiresToggle: 'cdn' },
+                { id: 'cache', label: 'Redis Cache', x: 390, y: 30, color: '#f87171', width: 110, height: 32, requiresToggle: 'redis' },
+                { id: 'replica', label: 'Read Replica', x: 640, y: 90, color: '#a78bfa', width: 110, height: 36, requiresToggle: 'replica' },
+              ],
+              connections: [
+                { from: 'client', to: 'web', label: 'request' },
+                { from: 'web', to: 'db', label: 'query' },
+                { from: 'client', to: 'cdn', label: 'static' },
+                { from: 'web', to: 'cache', label: 'check' },
+                { from: 'db', to: 'replica', label: 'sync', dashed: true },
+                { from: 'web', to: 'replica', label: 'read' },
+              ]
+            },
+            toggles: [
+              { id: 'redis', label: 'Redis Cache', icon: '🔴' },
+              { id: 'cdn', label: 'CDN', icon: '🌐' },
+              { id: 'replica', label: 'Read Replica', icon: '📋' },
+            ],
+            defaultActive: [],
+            baseInsight: 'Without caching, every request hits the database directly. This works at small scale but becomes a bottleneck as traffic grows. Try adding components to see the tradeoffs.',
+            scenarios: {
+              '_base': {
+                metrics: [
+                  { label: 'Latency', value: '~200ms', change: '' },
+                  { label: 'Throughput', value: '~1K rps', change: '' },
+                  { label: 'Complexity', value: 'Low', change: '' },
+                  { label: 'Cost', value: '$', change: '' },
+                ],
+                insight: 'Without caching, every request hits the database directly. This works at small scale but becomes a bottleneck as traffic grows.'
+              },
+              'redis': {
+                metrics: [
+                  { label: 'Latency', value: '~15ms', change: 'better' },
+                  { label: 'Throughput', value: '~10K rps', change: 'better' },
+                  { label: 'Complexity', value: 'Medium', change: 'worse' },
+                  { label: 'Cost', value: '$$', change: 'worse' },
+                ],
+                insight: 'Redis intercepts repeated reads — 90%+ cache hit rate cuts latency dramatically. But now you need cache invalidation logic. <strong>What happens when stale data is served?</strong> This is the classic cache invalidation problem.'
+              },
+              'cdn': {
+                metrics: [
+                  { label: 'Latency', value: '~120ms', change: 'better' },
+                  { label: 'Throughput', value: '~2K rps', change: 'better' },
+                  { label: 'Complexity', value: 'Low', change: '' },
+                  { label: 'Cost', value: '$$', change: 'worse' },
+                ],
+                insight: 'CDN serves static assets from edge locations near users, slashing latency for images, CSS, and JS. But dynamic API responses still hit your server — CDN alone doesn\'t fix the DB bottleneck.'
+              },
+              'replica': {
+                metrics: [
+                  { label: 'Latency', value: '~180ms', change: 'better' },
+                  { label: 'Throughput', value: '~2K rps', change: 'better' },
+                  { label: 'Complexity', value: 'Medium', change: 'worse' },
+                  { label: 'Cost', value: '$$', change: 'worse' },
+                ],
+                insight: 'Read replica offloads read queries from the primary, freeing it for writes. But there\'s <strong>replication lag</strong> — reads might return stale data. Sound familiar? That\'s eventual consistency — exactly what Dynamo embraces!'
+              },
+              'cdn+redis': {
+                metrics: [
+                  { label: 'Latency', value: '~10ms', change: 'better' },
+                  { label: 'Throughput', value: '~15K rps', change: 'better' },
+                  { label: 'Complexity', value: 'High', change: 'worse' },
+                  { label: 'Cost', value: '$$$', change: 'worse' },
+                ],
+                insight: 'CDN handles static content, Redis handles dynamic data caching — a powerful combo. But now you have <strong>two caching layers to invalidate</strong>. When do you bust the CDN cache vs the Redis cache?'
+              },
+              'cdn+replica': {
+                metrics: [
+                  { label: 'Latency', value: '~100ms', change: 'better' },
+                  { label: 'Throughput', value: '~4K rps', change: 'better' },
+                  { label: 'Complexity', value: 'Medium', change: 'worse' },
+                  { label: 'Cost', value: '$$$', change: 'worse' },
+                ],
+                insight: 'CDN for static files + read replica for DB reads. Good read scalability, but you still lack app-level caching for hot API responses. A common but incomplete architecture.'
+              },
+              'redis+replica': {
+                metrics: [
+                  { label: 'Latency', value: '~12ms', change: 'better' },
+                  { label: 'Throughput', value: '~12K rps', change: 'better' },
+                  { label: 'Complexity', value: 'High', change: 'worse' },
+                  { label: 'Cost', value: '$$$', change: 'worse' },
+                ],
+                insight: 'Redis handles hot reads, replica handles cache misses — your primary DB only does writes now. Great throughput, but you must manage cache invalidation on writes AND handle replication lag on misses.'
+              },
+              'cdn+redis+replica': {
+                metrics: [
+                  { label: 'Latency', value: '~8ms', change: 'better' },
+                  { label: 'Throughput', value: '~20K rps', change: 'better' },
+                  { label: 'Complexity', value: 'Very High', change: 'worse' },
+                  { label: 'Cost', value: '$$$$', change: 'worse' },
+                ],
+                insight: 'The full stack! CDN at the edge, Redis for API caching, read replica for DB reads. Amazing performance but <strong>significant operational complexity</strong>. This is why Dynamo solved the problem differently — with a decentralized architecture instead of layering caches.'
+              }
+            }
+          }
         }
       ]
     },
@@ -228,6 +334,113 @@ PaperRegistry.register(
           text: 'Dynamo uses three configurable parameters: N (replicas), R (read quorum), W (write quorum). As long as R + W > N, you get strong consistency. Dynamo typically uses N=3, R=2, W=2 — but can be tuned. Setting W=1 gives fastest writes but weaker durability.'
         },
         {
+          type: 'playground',
+          title: '🧪 Tune the Quorum — What Happens?',
+          config: {
+            architecture: {
+              height: 180,
+              nodes: [
+                { id: 'client', label: 'Client', x: 80, y: 90, color: '#6366f1', width: 90, height: 36 },
+                { id: 'coord', label: 'Coordinator', x: 250, y: 90, color: '#22d3ee', width: 110, height: 36 },
+                { id: 'n1', label: 'Node 1', x: 440, y: 30, color: '#34d399', width: 90, height: 36 },
+                { id: 'n2', label: 'Node 2', x: 440, y: 90, color: '#34d399', width: 90, height: 36 },
+                { id: 'n3', label: 'Node 3', x: 440, y: 150, color: '#34d399', width: 90, height: 36 },
+                { id: 'n4', label: 'Node 4', x: 600, y: 60, color: '#fbbf24', width: 90, height: 36, requiresToggle: 'n5' },
+                { id: 'n5', label: 'Node 5', x: 600, y: 120, color: '#fbbf24', width: 90, height: 36, requiresToggle: 'n5' },
+              ],
+              connections: [
+                { from: 'client', to: 'coord', label: 'request' },
+                { from: 'coord', to: 'n1' },
+                { from: 'coord', to: 'n2' },
+                { from: 'coord', to: 'n3' },
+                { from: 'coord', to: 'n4', dashed: true },
+                { from: 'coord', to: 'n5', dashed: true },
+              ]
+            },
+            toggles: [
+              { id: 'w1', label: 'W=1 (Fast Writes)', icon: '⚡' },
+              { id: 'r1', label: 'R=1 (Fast Reads)', icon: '📖' },
+              { id: 'n5', label: 'N=5 (More Replicas)', icon: '🔄' },
+            ],
+            defaultActive: [],
+            baseInsight: 'Default: N=3, R=2, W=2. Since R+W (4) > N (3), reads always see the latest write — strong consistency. But every operation waits for 2 nodes. Try tuning the knobs!',
+            scenarios: {
+              '_base': {
+                metrics: [
+                  { label: 'Read Speed', value: '~10ms', change: '' },
+                  { label: 'Write Speed', value: '~10ms', change: '' },
+                  { label: 'Consistency', value: 'Strong', change: '' },
+                  { label: 'Durability', value: 'Good', change: '' },
+                ],
+                insight: 'Default: N=3, R=2, W=2. Since R+W (4) > N (3), reads always see the latest write — strong consistency. But every operation waits for 2 nodes.'
+              },
+              'w1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~10ms', change: '' },
+                  { label: 'Write Speed', value: '~3ms', change: 'better' },
+                  { label: 'Consistency', value: 'Eventual', change: 'worse' },
+                  { label: 'Durability', value: 'Weak', change: 'worse' },
+                ],
+                insight: 'W=1: writes complete when ONE node confirms — 3× faster! But R+W (3) = N (3), so you might read stale data. If that single node crashes before replicating, <strong>the write is lost</strong>. Amazon uses this for the shopping cart — losing a write is better than losing a sale.'
+              },
+              'r1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~3ms', change: 'better' },
+                  { label: 'Write Speed', value: '~10ms', change: '' },
+                  { label: 'Consistency', value: 'Eventual', change: 'worse' },
+                  { label: 'Durability', value: 'Good', change: '' },
+                ],
+                insight: 'R=1: reads return from the fastest node — great for latency-sensitive workloads. But you might read from a node that hasn\'t received the latest write. <strong>User sees stale data.</strong> Acceptable for product catalogs, not for bank balances.'
+              },
+              'n5': {
+                metrics: [
+                  { label: 'Read Speed', value: '~10ms', change: '' },
+                  { label: 'Write Speed', value: '~15ms', change: 'worse' },
+                  { label: 'Consistency', value: 'Strong', change: '' },
+                  { label: 'Durability', value: 'Excellent', change: 'better' },
+                ],
+                insight: 'N=5 replicas (R=2, W=2): data survives 3 simultaneous node failures. More durable, but writes go to 5 nodes instead of 3 — slower. Also <strong>5× storage cost</strong>. Worth it for critical data, overkill for session storage.'
+              },
+              'r1+w1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~3ms', change: 'better' },
+                  { label: 'Write Speed', value: '~3ms', change: 'better' },
+                  { label: 'Consistency', value: 'Weak', change: 'worse' },
+                  { label: 'Durability', value: 'Weak', change: 'worse' },
+                ],
+                insight: '⚠️ R=1, W=1 — blazing fast but dangerous! R+W (2) < N (3), so reads can easily miss recent writes. You write to Node A, read from Node C that hasn\'t replicated yet. Only use for data you can afford to lose (analytics, temp caches).'
+              },
+              'n5+w1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~10ms', change: '' },
+                  { label: 'Write Speed', value: '~3ms', change: 'better' },
+                  { label: 'Consistency', value: 'Eventual', change: 'worse' },
+                  { label: 'Durability', value: 'Good', change: '' },
+                ],
+                insight: 'N=5 + W=1: fast writes AND good eventual durability (5 copies). But R+W (3) < N (5), so reads may miss recent writes. This is similar to what DynamoDB offers as its default eventual consistency mode.'
+              },
+              'n5+r1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~3ms', change: 'better' },
+                  { label: 'Write Speed', value: '~15ms', change: 'worse' },
+                  { label: 'Consistency', value: 'Eventual', change: 'worse' },
+                  { label: 'Durability', value: 'Excellent', change: 'better' },
+                ],
+                insight: 'N=5 + R=1: fast reads from 5 geo-distributed replicas. Great for read-heavy workloads. But R+W (3) < N (5) — no strong consistency. The tradeoff is clear: <strong>more replicas help availability, not consistency</strong>.'
+              },
+              'n5+r1+w1': {
+                metrics: [
+                  { label: 'Read Speed', value: '~3ms', change: 'better' },
+                  { label: 'Write Speed', value: '~3ms', change: 'better' },
+                  { label: 'Consistency', value: 'Weak', change: 'worse' },
+                  { label: 'Durability', value: 'Good', change: '' },
+                ],
+                insight: 'Maximum speed with N=5 as safety net. Fast reads AND writes, but weak consistency. The 5 replicas give durability via background sync. This is <strong>Dynamo\'s sweet spot for shopping cart data</strong> — always available, eventually consistent.'
+              }
+            }
+          }
+        },
+        {
           type: 'heading',
           content: 'Vector Clocks: Resolving Conflicts'
         },
@@ -334,6 +547,116 @@ PaperRegistry.register(
         {
           type: 'text',
           content: `<p>This combination of gossip protocol (for failure detection) and Merkle trees (for data repair) gives Dynamo a fully decentralized, self-healing architecture with <strong>no single point of failure</strong>.</p>`
+        },
+        {
+          type: 'playground',
+          title: '🧪 Building Failure Resilience',
+          config: {
+            architecture: {
+              height: 200,
+              nodes: [
+                { id: 'client', label: 'Client', x: 80, y: 100, color: '#6366f1', width: 90, height: 36 },
+                { id: 'n1', label: 'Node A', x: 270, y: 40, color: '#22d3ee', width: 90, height: 36 },
+                { id: 'n2', label: 'Node B', x: 270, y: 100, color: '#22d3ee', width: 90, height: 36 },
+                { id: 'n3', label: 'Node C', x: 270, y: 160, color: '#22d3ee', width: 90, height: 36 },
+                { id: 'gossip', label: 'Gossip Layer', x: 460, y: 40, color: '#fbbf24', width: 110, height: 32, requiresToggle: 'gossip' },
+                { id: 'handoff', label: 'Standby Node', x: 460, y: 100, color: '#34d399', width: 110, height: 32, requiresToggle: 'handoff' },
+                { id: 'merkle', label: 'Merkle Sync', x: 460, y: 160, color: '#a78bfa', width: 110, height: 32, requiresToggle: 'merkle' },
+              ],
+              connections: [
+                { from: 'client', to: 'n1' },
+                { from: 'client', to: 'n2' },
+                { from: 'client', to: 'n3' },
+                { from: 'n1', to: 'gossip', dashed: true },
+                { from: 'n2', to: 'gossip', dashed: true },
+                { from: 'n3', to: 'gossip', dashed: true },
+                { from: 'n2', to: 'handoff', label: 'failover' },
+                { from: 'n1', to: 'merkle', dashed: true },
+                { from: 'n3', to: 'merkle', dashed: true },
+              ]
+            },
+            toggles: [
+              { id: 'gossip', label: 'Gossip Protocol', icon: '📡' },
+              { id: 'handoff', label: 'Hinted Handoff', icon: '🔄' },
+              { id: 'merkle', label: 'Merkle Trees', icon: '🌳' },
+            ],
+            defaultActive: [],
+            baseInsight: 'A bare 3-node cluster with no failure handling. If Node B goes down, its data is unreachable and writes to its keys fail. No detection, no recovery. Try adding Dynamo\'s resilience mechanisms.',
+            scenarios: {
+              '_base': {
+                metrics: [
+                  { label: 'Detection', value: 'None', change: '' },
+                  { label: 'Write Avail.', value: '67%', change: '' },
+                  { label: 'Data Safety', value: 'At Risk', change: '' },
+                  { label: 'Recovery', value: 'Manual', change: '' },
+                ],
+                insight: 'A bare 3-node cluster. If any node goes down, its data is unreachable and writes fail. No automatic detection, no recovery. You\'d need an operator to manually detect and fix the problem.'
+              },
+              'gossip': {
+                metrics: [
+                  { label: 'Detection', value: '~1s', change: 'better' },
+                  { label: 'Write Avail.', value: '67%', change: '' },
+                  { label: 'Data Safety', value: 'At Risk', change: '' },
+                  { label: 'Recovery', value: 'Manual', change: '' },
+                ],
+                insight: 'Gossip protocol detects failures in ~1 second — each node exchanges heartbeats with random peers. Now you <strong>know</strong> a node is down, but you can\'t do anything about it yet. Detection without action.'
+              },
+              'handoff': {
+                metrics: [
+                  { label: 'Detection', value: 'None', change: '' },
+                  { label: 'Write Avail.', value: '100%', change: 'better' },
+                  { label: 'Data Safety', value: 'Buffered', change: 'better' },
+                  { label: 'Recovery', value: 'Auto', change: 'better' },
+                ],
+                insight: 'Hinted handoff: when a node is unreachable, writes are sent to a standby with a "hint" — <em>deliver this to Node B when it\'s back</em>. Writes never fail! But without gossip, you rely on timeouts to detect the failure (slow).'
+              },
+              'merkle': {
+                metrics: [
+                  { label: 'Detection', value: 'None', change: '' },
+                  { label: 'Write Avail.', value: '67%', change: '' },
+                  { label: 'Data Safety', value: 'Synced', change: 'better' },
+                  { label: 'Recovery', value: 'Background', change: 'better' },
+                ],
+                insight: 'Merkle trees let nodes compare data efficiently — compare one hash to check if millions of keys are in sync. Finds diverged keys in O(log n). <strong>But this only repairs data after the fact</strong> — it doesn\'t help during the failure itself.'
+              },
+              'gossip+handoff': {
+                metrics: [
+                  { label: 'Detection', value: '~1s', change: 'better' },
+                  { label: 'Write Avail.', value: '100%', change: 'better' },
+                  { label: 'Data Safety', value: 'Buffered', change: 'better' },
+                  { label: 'Recovery', value: 'Auto', change: 'better' },
+                ],
+                insight: 'Now we\'re talking! Gossip detects failure fast, hinted handoff keeps writes flowing. The standby buffers data and delivers it when the failed node recovers. <strong>Zero downtime, zero lost writes.</strong> But what about data that diverged while the node was down?'
+              },
+              'gossip+merkle': {
+                metrics: [
+                  { label: 'Detection', value: '~1s', change: 'better' },
+                  { label: 'Write Avail.', value: '67%', change: '' },
+                  { label: 'Data Safety', value: 'Synced', change: 'better' },
+                  { label: 'Recovery', value: 'Background', change: 'better' },
+                ],
+                insight: 'Gossip detects failures, Merkle trees repair diverged data after recovery. Good for data consistency, but writes still fail while the node is down — you\'re missing the hinted handoff piece for availability.'
+              },
+              'handoff+merkle': {
+                metrics: [
+                  { label: 'Detection', value: 'Slow', change: '' },
+                  { label: 'Write Avail.', value: '100%', change: 'better' },
+                  { label: 'Data Safety', value: 'Synced', change: 'better' },
+                  { label: 'Recovery', value: 'Auto', change: 'better' },
+                ],
+                insight: 'Handoff keeps writes flowing, Merkle trees sync data after recovery. Strong combination! But without gossip\'s fast detection, you discover failures via slow timeouts. <strong>Detection speed matters</strong> — seconds vs minutes of degraded performance.'
+              },
+              'gossip+handoff+merkle': {
+                metrics: [
+                  { label: 'Detection', value: '~1s', change: 'better' },
+                  { label: 'Write Avail.', value: '100%', change: 'better' },
+                  { label: 'Data Safety', value: 'Synced', change: 'better' },
+                  { label: 'Recovery', value: 'Full Auto', change: 'better' },
+                ],
+                insight: '🎯 <strong>This is Dynamo\'s full resilience stack!</strong> Gossip detects failures in seconds, hinted handoff ensures zero lost writes, Merkle trees repair any data divergence in the background. A fully self-healing system with no human intervention needed.'
+              }
+            }
+          }
         }
       ]
     },
